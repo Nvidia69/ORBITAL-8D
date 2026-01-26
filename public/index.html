@@ -1,0 +1,1098 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Orbital Audio Suite - Pro</title>
+    
+    <!-- Google AdSense Code -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8458632799365289" crossorigin="anonymous"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MP3 Encoder Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lamejs/1.2.1/lame.min.js"></script>
+    <style>
+        body {
+            background-color: #050b14;
+            color: #e0f2fe;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            overflow-y: auto; 
+            background-image: 
+                linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        body::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        h1, h2, h3, .tech-font { font-family: 'Orbitron', sans-serif; }
+        
+        .neon-box {
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.1);
+            background: rgba(10, 15, 30, 0.8);
+            backdrop-filter: blur(16px);
+        }
+        
+        /* Visualizer Animations */
+        .visualizer-container { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; pointer-events: none; }
+        .visualizer-ring { position: absolute; top: 50%; left: 50%; border-radius: 50%; background: transparent; transform: translate(-50%, -50%); }
+
+        .ring-neon-cyan { width: 100%; height: 100%; border: 2px solid transparent; border-top-color: #0ea5e9; border-bottom-color: #0ea5e9; box-shadow: 0 0 20px #0ea5e9, inset 0 0 10px #0ea5e9; animation: spin 10s linear infinite; }
+        .ring-neon-purple { width: 70%; height: 70%; border: 2px solid transparent; border-left-color: #d946ef; border-right-color: #d946ef; box-shadow: 0 0 15px #d946ef, inset 0 0 5px #d946ef; animation: spin 6s linear infinite reverse; }
+        .ring-static { width: 130%; height: 130%; border: 1px dashed rgba(255,255,255,0.1); animation: spin 40s linear infinite; }
+
+        @keyframes spin { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+        /* Faders */
+        .fader-group { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; }
+        .fader-wrapper { position: relative; width: 32px; height: 120px; display: flex; justify-content: center; align-items: center; background: #0f172a; border-radius: 99px; border: 1px solid #334155; box-shadow: inset 0 4px 6px rgba(0,0,0,0.6); }
+
+        input[type=range].pro-fader { -webkit-appearance: none; width: 100px; height: 6px; background: transparent; transform: rotate(-90deg); cursor: pointer; position: absolute; }
+        input[type=range].pro-fader::-webkit-slider-runnable-track { width: 100%; height: 6px; cursor: pointer; background: #1e293b; border-radius: 3px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.8); }
+        
+        input[type=range].pro-fader::-webkit-slider-thumb { -webkit-appearance: none; height: 20px; width: 14px; border-radius: 3px; background: linear-gradient(to bottom, #bae6fd, #0ea5e9); cursor: grab; margin-top: -7px; border: 1px solid #7dd3fc; box-shadow: 0 2px 5px rgba(0,0,0,0.5); background-image: repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(0,0,0,0.2) 2px, rgba(0,0,0,0.2) 3px); background-position: center; background-size: 60% 50%; background-repeat: no-repeat; transition: all 0.1s; }
+        input[type=range].pro-fader:hover::-webkit-slider-thumb { background-color: #e0f2fe; box-shadow: 0 0 15px rgba(56, 189, 248, 0.6); transform: scale(1.1); }
+        input[type=range].pro-fader:active::-webkit-slider-thumb { cursor: grabbing; background: #fff; }
+
+        /* Knob Colors */
+        input[type=range].spin-fader::-webkit-slider-thumb { background: linear-gradient(to bottom, #e9d5ff, #a855f7); border-color: #d8b4fe; }
+        input[type=range].tempo-fader::-webkit-slider-thumb { background: linear-gradient(to bottom, #bbf7d0, #22c55e); border-color: #86efac; }
+        input[type=range].bass-fader::-webkit-slider-thumb { background: linear-gradient(to bottom, #fca5a5, #dc2626); border-color: #f87171; }
+        input[type=range].mid-fader::-webkit-slider-thumb { background: linear-gradient(to bottom, #fde047, #ca8a04); border-color: #facc15; }
+        input[type=range].treble-fader::-webkit-slider-thumb { background: linear-gradient(to bottom, #67e8f9, #0891b2); border-color: #22d3ee; }
+
+        .fader-label { font-family: 'Orbitron', sans-serif; font-size: 8px; color: #64748b; letter-spacing: 1px; text-transform: uppercase; font-weight: 700; }
+
+        /* Seek Bar */
+        input[type=range].seek-bar { -webkit-appearance: none; width: 100%; height: 4px; background: transparent; cursor: pointer; }
+        input[type=range].seek-bar::-webkit-slider-runnable-track { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; }
+        input[type=range].seek-bar::-webkit-slider-thumb { -webkit-appearance: none; height: 12px; width: 12px; border-radius: 50%; background: #38bdf8; margin-top: -4px; box-shadow: 0 0 10px #38bdf8; transition: transform 0.1s; }
+        input[type=range].seek-bar:hover::-webkit-slider-thumb { transform: scale(1.3); }
+
+        /* Buttons */
+        .btn-cyber { position: relative; overflow: hidden; border: none; cursor: pointer; transition: all 0.3s ease; z-index: 1; }
+        .btn-cyber::before { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent); transition: 0.5s; z-index: -1; }
+        .btn-cyber:hover::before { left: 100%; }
+
+        .btn-primary { background: linear-gradient(135deg, #0ea5e9, #2563eb); box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4), inset 0 1px 0 rgba(255,255,255,0.3); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); }
+        .btn-primary:active { transform: translateY(1px); box-shadow: 0 2px 10px rgba(14, 165, 233, 0.4); }
+        .btn-secondary { background: rgba(30, 41, 59, 0.6); border: 1px solid rgba(255,255,255,0.1); color: #94a3b8; border-radius: 8px; }
+        .btn-play-glow { background: radial-gradient(circle, #0ea5e9 0%, #0284c7 100%); box-shadow: 0 0 20px rgba(14, 165, 233, 0.4), inset 0 2px 0 rgba(255,255,255,0.3); border: 2px solid #0c4a6e; transition: all 0.2s; }
+        .btn-play-glow:active { transform: scale(0.95); }
+
+        /* Tabs */
+        .nav-pill { transition: all 0.3s ease; position: relative; background: transparent; border: 1px solid transparent; }
+        .nav-pill.active { background: rgba(14, 165, 233, 0.15); border-color: rgba(14, 165, 233, 0.5); color: #fff; box-shadow: 0 0 15px rgba(14, 165, 233, 0.2); }
+        .tab-content { display: none; opacity: 0; transform: translateY(10px); transition: opacity 0.3s ease-out, transform 0.3s ease-out; }
+        .tab-content.active-tab { display: flex; opacity: 1; transform: translateY(0); }
+
+        .drag-highlight { border-color: #38bdf8 !important; background: rgba(56, 189, 248, 0.15) !important; transform: scale(1.02); box-shadow: 0 0 30px rgba(56, 189, 248, 0.2); }
+
+        @keyframes neonBeatCyan { 0%, 100% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.3); border-color: rgba(56, 189, 248, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(56, 189, 248, 0.6); border-color: rgba(56, 189, 248, 0.8); transform: scale(1.03); } }
+        @keyframes neonBeatYellow { 0%, 100% { box-shadow: 0 0 15px rgba(234, 179, 8, 0.3); border-color: rgba(234, 179, 8, 0.3); transform: scale(1); } 50% { box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); border-color: rgba(234, 179, 8, 0.8); transform: scale(1.03); } }
+        .qr-beat-cyan { animation: neonBeatCyan 1.5s infinite ease-in-out; border: 2px solid transparent; }
+        .qr-beat-yellow { animation: neonBeatYellow 1.5s infinite ease-in-out; border: 2px solid transparent; }
+    </style>
+</head>
+<body class="flex flex-col items-center relative min-h-screen">
+
+    <div class="absolute top-4 right-4 z-50">
+        <a href="https://ashwathama.netlify.app/" target="_blank" class="group relative flex items-center gap-2 px-3 py-1.5 md:px-5 md:py-2.5 bg-black/40 backdrop-blur-xl border border-cyan-500/30 rounded-full hover:border-cyan-400 transition-all duration-300 shadow-lg">
+            <div class="relative flex items-center justify-center w-2 h-2">
+                <span class="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping"></span>
+                <span class="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
+            </div>
+            <span class="tech-font text-[9px] md:text-xs font-bold text-cyan-300 tracking-[0.1em] md:tracking-[0.2em] uppercase">Dev. Ashwathama</span>
+        </a>
+    </div>
+
+    <canvas id="bgCanvas" class="fixed inset-0 z-0 opacity-40 pointer-events-none"></canvas>
+
+    <div class="w-full flex-grow flex flex-col items-center justify-center pt-20 pb-10 z-10 px-4">
+        
+        <div class="flex gap-2 p-1 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl mb-6">
+            <button onclick="switchTab('tab-8d')" id="btn-tab-8d" class="nav-pill active px-4 py-2 md:px-6 md:py-2.5 rounded-lg text-[10px] md:text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                <i data-lucide="headphones" class="w-3 h-3 md:w-4 md:h-4"></i> STUDIO 8D
+            </button>
+            <button onclick="switchTab('tab-video')" id="btn-tab-video" class="nav-pill px-4 py-2 md:px-6 md:py-2.5 rounded-lg text-[10px] md:text-sm font-bold text-gray-400 hover:text-white flex items-center gap-2">
+                <i data-lucide="film" class="w-3 h-3 md:w-4 md:h-4"></i> VIDEO RIPPER
+            </button>
+        </div>
+
+        <div id="tab-8d" class="tab-content active-tab w-full max-w-5xl flex-col items-center gap-6 justify-center">
+            
+            <div class="text-center space-y-1">
+                <h1 class="text-3xl md:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-cyan-400 tracking-wider drop-shadow-2xl">ORBITAL 8D</h1>
+                <p class="text-cyan-300/60 text-[9px] md:text-[10px] tracking-[0.3em] uppercase">Professional Spatial Audio Engine</p>
+            </div>
+
+            <div class="flex flex-col md:flex-row gap-6 w-full items-center justify-center">
+                
+                <div class="relative w-56 h-56 md:w-80 md:h-80 flex items-center justify-center shrink-0">
+                    <div id="pulseWrapper" class="absolute w-full h-full flex items-center justify-center transition-transform duration-75">
+                        <div class="visualizer-ring ring-neon-cyan"></div>
+                        <div class="visualizer-ring ring-neon-purple"></div>
+                        <div class="visualizer-ring ring-static"></div>
+                    </div>
+                    <div class="absolute z-20 text-white/90">
+                        <i data-lucide="headphones" class="w-16 h-16 md:w-24 md:h-24 stroke-[1]"></i>
+                    </div>
+                    <div id="soundOrb" class="absolute w-3 h-3 md:w-4 md:h-4 bg-cyan-400 rounded-full shadow-[0_0_20px_#22d3ee] z-10" style="top: 50%; left: 50%;">
+                        <div class="absolute inset-0 bg-white rounded-full animate-ping opacity-75"></div>
+                    </div>
+                    <canvas id="freqCanvas" class="absolute inset-0 w-full h-full z-0 opacity-80"></canvas>
+                </div>
+
+                <div id="controls" class="neon-box rounded-2xl p-4 md:p-6 w-full max-w-md hidden flex-col gap-4 md:gap-6 transition-all duration-500 relative overflow-hidden shadow-2xl">
+                    <div class="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-70"></div>
+
+                    <div class="flex flex-col gap-3 md:gap-4 bg-black/40 p-3 md:p-4 rounded-xl border border-white/5">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <button id="playBtn" class="w-12 h-12 md:w-14 md:h-14 rounded-full btn-play-glow text-white flex items-center justify-center">
+                                    <i data-lucide="play" class="fill-current ml-1 w-5 h-5 md:w-6 md:h-6"></i>
+                                </button>
+                                <div class="overflow-hidden">
+                                    <h2 id="trackTitle" class="text-white font-bold truncate max-w-[120px] md:max-w-[140px] text-xs md:text-sm tracking-wide">Track Name</h2>
+                                    <p id="timer" class="text-[10px] md:text-xs text-cyan-400 font-mono tracking-widest mt-1">00:00</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-full flex items-center gap-2">
+                            <input type="range" id="progressBar" min="0" max="100" value="0" step="0.1" class="seek-bar">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-1 md:gap-2 bg-black/40 p-3 md:p-5 rounded-xl border border-white/5 shadow-inner pt-6 md:pt-7">
+                        <div class="fader-group">
+                            <div class="fader-wrapper border-red-500/30">
+                                <input type="range" id="eqBass" min="-10" max="10" value="0" class="pro-fader bass-fader">
+                            </div>
+                            <label class="fader-label text-red-400">Bass</label>
+                            <span id="bassValue" class="absolute -top-4 md:-top-5 left-1/2 -translate-x-1/2 text-[10px] md:text-xs text-red-400 font-mono font-bold tracking-widest">0</span>
+                        </div>
+                        <div class="fader-group">
+                            <div class="fader-wrapper border-yellow-500/30">
+                                <input type="range" id="eqMid" min="-10" max="10" value="0" class="pro-fader mid-fader">
+                            </div>
+                            <label class="fader-label text-yellow-400">Mid</label>
+                            <span id="midValue" class="absolute -top-4 md:-top-5 left-1/2 -translate-x-1/2 text-[10px] md:text-xs text-yellow-400 font-mono font-bold tracking-widest">0</span>
+                        </div>
+                        <div class="fader-group">
+                            <div class="fader-wrapper border-cyan-500/30">
+                                <input type="range" id="eqTreble" min="-10" max="10" value="0" class="pro-fader treble-fader">
+                            </div>
+                            <label class="fader-label text-cyan-400">High</label>
+                            <span id="trebleValue" class="absolute -top-4 md:-top-5 left-1/2 -translate-x-1/2 text-[10px] md:text-xs text-cyan-400 font-mono font-bold tracking-widest">0</span>
+                        </div>
+                        <div class="fader-group border-l border-white/10 pl-1 md:pl-2">
+                            <div class="fader-wrapper border-purple-500/30">
+                                <input type="range" id="speedSlider" min="1" max="10" step="0.5" value="1" class="pro-fader spin-fader">
+                            </div>
+                            <label class="fader-label text-purple-300">Spin</label>
+                            <span id="speedValue" class="absolute -top-4 md:-top-5 left-1/2 -translate-x-1/2 ml-0.5 md:ml-1.5 text-[10px] md:text-xs text-purple-400 font-mono font-bold tracking-widest">1.0</span>
+                        </div>
+                        <div class="fader-group">
+                            <div class="fader-wrapper border-green-500/30">
+                                <input type="range" id="tempoSlider" min="0.25" max="2.0" step="0.05" value="1.0" class="pro-fader tempo-fader">
+                            </div>
+                            <label class="fader-label text-green-300">Speed</label>
+                            <span id="tempoValue" class="absolute -top-4 md:-top-5 left-1/2 -translate-x-1/2 ml-0.5 md:ml-1.5 text-[10px] md:text-xs text-green-400 font-mono font-bold tracking-widest">1.0x</span>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 md:gap-3 mt-1">
+                        <button id="downloadBtn" class="flex-1 btn-cyber btn-primary py-2.5 md:py-3 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                            <i data-lucide="download" class="w-3 h-3 md:w-4 md:h-4"></i> Export MP3
+                        </button>
+                        <button id="resetBtn" class="btn-cyber btn-secondary px-3 md:px-5 py-2.5 md:py-3 flex items-center justify-center">
+                            <i data-lucide="refresh-cw" class="w-3 h-3 md:w-4 md:h-4"></i>
+                        </button>
+                    </div>
+                    <div id="renderStatus" class="text-[9px] md:text-[10px] text-cyan-300 text-center hidden animate-pulse font-mono mt-1 tracking-widest">/// RENDERING AUDIO PHYSICS ///</div>
+                </div>
+            </div>
+
+            <div id="uploadArea" class="neon-box p-8 md:p-12 rounded-2xl text-center cursor-pointer hover:bg-white/5 transition duration-300 group w-full max-w-lg border-dashed border-2 border-white/10 hover:border-cyan-500/50 flex flex-col items-center justify-center min-h-[250px] md:min-h-[300px]">
+                <input type="file" id="fileInput" accept="audio/*" class="hidden">
+                <div class="flex flex-col items-center gap-4 md:gap-6 pointer-events-none transition-transform duration-300 group-hover:scale-105">
+                    <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/30 shadow-[0_0_30px_rgba(56,189,248,0.15)]">
+                        <i data-lucide="music" class="w-8 h-8 md:w-10 md:h-10 text-cyan-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg md:text-xl font-bold text-white mb-2">Drop Audio Here</h3>
+                        <p class="text-[10px] md:text-xs text-cyan-300/50 uppercase tracking-widest">MP3 • WAV • FLAC</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-video" class="tab-content z-10 w-full max-w-4xl p-6 flex-col items-center gap-8 justify-center">
+            <div class="text-center space-y-1 mt-4 md:mt-0">
+                <h1 class="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-purple-600 tracking-wider drop-shadow-lg">VIDEO RIPPER</h1>
+                <p class="text-purple-300/60 text-[8px] md:text-[10px] tracking-[0.2em] md:tracking-[0.3em] uppercase">Lossless Audio Extraction</p>
+            </div>
+            <div class="w-full max-w-lg">
+                <div id="videoUploadArea" class="neon-box p-8 md:p-12 rounded-2xl text-center cursor-pointer hover:bg-white/5 transition duration-300 group border-dashed border-2 border-white/10 hover:border-pink-500/50 flex flex-col items-center justify-center min-h-[250px] md:min-h-[300px]">
+                    <input type="file" id="videoInput" accept="video/mp4,video/*" class="hidden">
+                    <div class="flex flex-col items-center gap-4 md:gap-6 pointer-events-none transition-transform duration-300 group-hover:scale-105">
+                        <div class="w-16 h-16 md:w-20 md:h-20 rounded-full bg-pink-500/10 flex items-center justify-center border border-pink-500/30 shadow-[0_0_30px_rgba(236,72,153,0.15)]">
+                            <i data-lucide="film" class="w-8 h-8 md:w-10 md:h-10 text-pink-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg md:text-xl font-bold text-white mb-2">Drop Video File</h3>
+                            <p class="text-[10px] md:text-xs text-pink-300/50 uppercase tracking-widest">MP4 • MKV • MOV</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="videoControls" class="neon-box p-4 md:p-6 rounded-2xl mt-6 hidden border border-pink-500/20 relative overflow-hidden shadow-2xl">
+                    <div class="absolute top-0 left-0 w-1 h-full bg-pink-500 shadow-[0_0_15px_#ec4899]"></div>
+                    <div class="flex items-center gap-4 md:gap-5 mb-4 md:mb-6">
+                        <div class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-pink-900/30 flex items-center justify-center border border-pink-500/30">
+                            <i data-lucide="file-audio" class="w-5 h-5 md:w-6 md:h-6 text-pink-400"></i>
+                        </div>
+                        <div class="overflow-hidden">
+                            <h3 id="videoFileName" class="text-white font-bold truncate text-xs md:text-sm tracking-wide">video.mp4</h3>
+                            <p class="text-[9px] md:text-[10px] text-pink-400 font-mono tracking-wider mt-1" id="videoStatus">READY_TO_EXTRACT</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2 md:gap-3">
+                        <button id="extractBtn" class="flex-1 btn-cyber py-2.5 md:py-3 text-white text-[10px] md:text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-2" style="background: linear-gradient(135deg, #db2777, #9333ea);">
+                            <i data-lucide="zap" class="w-3 h-3 md:w-4 md:h-4"></i> Extract MP3
+                        </button>
+                        <button id="resetVideoBtn" class="btn-cyber btn-secondary px-3 md:px-5 py-2.5 md:py-3">
+                            <i data-lucide="x" class="w-3 h-3 md:w-4 md:h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- About Us / Social Footer -->
+    <div class="w-full flex flex-col items-center gap-4 pb-8 z-20 mt-auto">
+        <div class="flex items-center gap-4 md:gap-6 px-4 md:px-6 py-2 bg-black/60 backdrop-blur-xl rounded-full border border-white/5 shadow-2xl scale-90 md:scale-100">
+            <a href="https://www.instagram.com/icey_blinkx/" class="text-gray-500 hover:text-pink-500 transition-all duration-300 transform hover:scale-110"><i data-lucide="instagram" class="w-4 h-4"></i></a>
+            <a href="#" class="text-gray-500 hover:text-blue-400 transition-all duration-300 transform hover:scale-110"><i data-lucide="twitter" class="w-4 h-4"></i></a>
+            <a href="https://t.me/nvidia61" class="text-gray-500 hover:text-cyan-400 transition-all duration-300 transform hover:scale-110" target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            </a>
+            <a href="https://discord.gg/SAJB3U6jWw" class="text-gray-500 hover:text-indigo-400 transition-all duration-300 transform hover:scale-110">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 7.5c3.5-1 5.5-1 9 0"/><path d="M7 16.5c3.5 1 6.5 1 10 0"/><path d="M15.5 17c0 1 1.5 3 2 3 1.5 0 2.8-3.3 3.2-6 .3-3.3-.3-6-1.7-6-3.6 1.3-5.5 1.3-9 0-1.4 0-2 2.7-1.7 6 .4 2.7 1.7 6 3.2 6 .5 0 2-2 2-3"/><rect width="14" height="10" x="5" y="7" rx="2" ry="2" stroke="none" fill="none"/><circle cx="9" cy="12" r="1"/><circle cx="15" cy="12" r="1"/></svg>
+            </a>
+            <a href="https://github.com/Nvidia69" class="text-gray-500 hover:text-white transition-all duration-300 transform hover:scale-110"><i data-lucide="github" class="w-4 h-4"></i></a>
+        </div>
+        
+        <button id="donateBtn" class="group relative px-6 py-2 rounded-full bg-gradient-to-r from-pink-600 via-purple-600 to-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest shadow-[0_0_15px_rgba(236,72,153,0.4)] hover:shadow-[0_0_25px_rgba(236,72,153,0.7)] transition-all duration-300 hover:-translate-y-0.5 overflow-hidden border border-white/10">
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+            <span class="relative flex items-center gap-2">
+                <i data-lucide="heart" class="w-3 h-3 text-pink-300 fill-pink-500/50 animate-pulse"></i> 
+                Donate Us
+            </span>
+        </button>
+
+        <p class="text-white/10 text-[9px] uppercase tracking-[0.3em]">Studio Edition v2.0</p>
+
+        <div style="margin-top:20px; font-size:12px; text-align:center; opacity:0.6;">
+            <a href="privacy.html" class="hover:text-cyan-400 transition-colors">Privacy Policy</a> |
+            <a href="terms.html" class="hover:text-cyan-400 transition-colors">Terms</a> |
+            <a href="disclaimer.html" class="hover:text-cyan-400 transition-colors">Disclaimer</a> |
+            <a href="contact.html" class="hover:text-cyan-400 transition-colors">Contact</a>
+        </div>
+    </div>
+
+    <!-- Donation Modal -->
+    <div id="donateModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden opacity-0 transition-opacity duration-300">
+        <div class="neon-box p-6 md:p-8 rounded-2xl max-w-sm w-full mx-4 text-center transform scale-95 transition-transform duration-300" id="donateContent">
+            <h3 class="text-xl font-bold text-white mb-4 tech-font">Donate Us</h3>
+            
+            <div class="flex justify-center gap-6 mb-6 border-b border-white/10 pb-2">
+                <button id="tabUpi" class="text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 pb-2 transition-all tracking-widest hover:text-cyan-300">UPI</button>
+                <button id="tabBinance" class="text-xs font-bold text-gray-500 border-b-2 border-transparent pb-2 transition-all tracking-widest hover:text-yellow-400">BINANCE</button>
+            </div>
+
+            <div id="upiContent" class="payment-content">
+                <p class="text-xs text-gray-400 mb-4">Scan via PhonePe / GPay / Paytm</p>
+                <div class="w-40 h-40 md:w-48 md:h-48 mx-auto bg-white rounded-lg flex items-center justify-center mb-4 overflow-hidden relative group shadow-[0_0_20px_rgba(56,189,248,0.2)] qr-beat-cyan">
+                    <img src="https://files.catbox.moe/1tssp8.jpeg" alt="UPI QR" class="w-full h-full object-cover">
+                </div>
+                <div class="mb-6">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">UPI ID</p>
+                    <div class="flex items-center justify-center gap-2 bg-black/40 py-2 px-3 rounded border border-white/10 cursor-pointer hover:bg-white/5 transition group" onclick="navigator.clipboard.writeText('pks3342274@okhdfcbank'); this.classList.add('border-green-500/50'); setTimeout(()=>this.classList.remove('border-green-500/50'), 200);">
+                        <span class="text-[10px] md:text-xs text-cyan-400 font-mono select-all break-all">pks3342274@okhdfcbank</span>
+                        <i data-lucide="copy" class="w-3 h-3 text-gray-500 group-hover:text-white transition"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div id="binanceContent" class="payment-content hidden">
+                <p class="text-xs text-gray-400 mb-4">Scan via Binance App</p>
+                <div class="w-40 h-40 md:w-48 md:h-48 mx-auto bg-white rounded-lg flex items-center justify-center mb-4 overflow-hidden relative group shadow-[0_0_20px_rgba(234,179,8,0.2)] qr-beat-yellow">
+                    <img src="https://files.catbox.moe/9ikntt.jpeg" alt="Binance QR" class="w-full h-full object-cover opacity-90">
+                    <div class="absolute inset-0 flex items-center justify-center bg-black/50 text-white font-bold text-xs opacity-0 group-hover:opacity-100 transition duration-300">
+                        Binance Pay
+                    </div>
+                </div>
+                <div class="mb-6">
+                    <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">Binance Pay ID / USDT Address</p>
+                    <div class="flex items-center justify-center gap-2 bg-black/40 py-2 px-3 rounded border border-white/10 cursor-pointer hover:bg-white/5 transition group" onclick="navigator.clipboard.writeText('832468519'); this.classList.add('border-yellow-500/50'); setTimeout(()=>this.classList.remove('border-yellow-500/50'), 200);">
+                        <span class="text-[10px] md:text-xs text-yellow-400 font-mono select-all break-all">832468519</span>
+                        <i data-lucide="copy" class="w-3 h-3 text-gray-500 group-hover:text-white transition"></i>
+                    </div>
+                </div>
+            </div>
+
+            <button id="closeDonateBtn" class="px-6 py-2 rounded border border-white/10 hover:bg-white/10 text-gray-300 hover:text-white text-xs transition uppercase tracking-widest">
+                Close
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        // --- Background Animation ---
+        const bgCanvas = document.getElementById('bgCanvas');
+        const bgCtx = bgCanvas.getContext('2d');
+        let width, height;
+        const stars = [];
+
+        function resizeBg() {
+            width = bgCanvas.width = window.innerWidth;
+            height = bgCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeBg);
+        resizeBg();
+
+        for(let i=0; i<80; i++) {
+            stars.push({
+                x: Math.random() * width,
+                y: Math.random() * height,
+                size: Math.random() * 1.5,
+                speed: Math.random() * 0.15 + 0.05
+            });
+        }
+
+        function animateBg() {
+            bgCtx.clearRect(0,0,width,height);
+            bgCtx.fillStyle = '#fff';
+            stars.forEach(star => {
+                star.y += star.speed;
+                if(star.y > height) star.y = 0;
+                bgCtx.globalAlpha = Math.random() * 0.4 + 0.1;
+                bgCtx.beginPath();
+                bgCtx.arc(star.x, star.y, star.size, 0, Math.PI*2);
+                bgCtx.fill();
+            });
+            requestAnimationFrame(animateBg);
+        }
+        animateBg();
+
+        // --- Optimized Tab Switching ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.style.display = 'none';
+                el.classList.remove('active-tab');
+            });
+            document.querySelectorAll('.nav-pill').forEach(el => el.classList.remove('active'));
+            document.getElementById(`btn-${tabId}`).classList.add('active');
+            const selectedTab = document.getElementById(tabId);
+            selectedTab.style.display = 'flex';
+            void selectedTab.offsetWidth; 
+            selectedTab.classList.add('active-tab');
+        }
+
+        // --- Donation Modal Logic ---
+        const donateBtn = document.getElementById('donateBtn');
+        const donateModal = document.getElementById('donateModal');
+        const closeDonateBtn = document.getElementById('closeDonateBtn');
+        const donateContent = document.getElementById('donateContent');
+        
+        // Donation Tabs Logic
+        const tabUpi = document.getElementById('tabUpi');
+        const tabBinance = document.getElementById('tabBinance');
+        const upiContent = document.getElementById('upiContent');
+        const binanceContent = document.getElementById('binanceContent');
+
+        function switchPaymentTab(type) {
+            if (type === 'upi') {
+                tabUpi.classList.add('text-cyan-400', 'border-cyan-400');
+                tabUpi.classList.remove('text-gray-500', 'border-transparent');
+                
+                tabBinance.classList.add('text-gray-500', 'border-transparent');
+                tabBinance.classList.remove('text-yellow-400', 'border-yellow-400');
+                
+                upiContent.classList.remove('hidden');
+                binanceContent.classList.add('hidden');
+            } else {
+                tabBinance.classList.add('text-yellow-400', 'border-yellow-400');
+                tabBinance.classList.remove('text-gray-500', 'border-transparent');
+                
+                tabUpi.classList.add('text-gray-500', 'border-transparent');
+                tabUpi.classList.remove('text-cyan-400', 'border-cyan-400');
+                
+                binanceContent.classList.remove('hidden');
+                upiContent.classList.add('hidden');
+            }
+        }
+
+        tabUpi.addEventListener('click', () => switchPaymentTab('upi'));
+        tabBinance.addEventListener('click', () => switchPaymentTab('binance'));
+
+        donateBtn.addEventListener('click', () => {
+            donateModal.classList.remove('hidden');
+            void donateModal.offsetWidth;
+            donateModal.classList.remove('opacity-0');
+            donateContent.classList.remove('scale-95');
+            donateContent.classList.add('scale-100');
+        });
+
+        function closeModal() {
+            donateModal.classList.add('opacity-0');
+            donateContent.classList.remove('scale-100');
+            donateContent.classList.add('scale-95');
+            setTimeout(() => {
+                donateModal.classList.add('hidden');
+            }, 300);
+        }
+
+        closeDonateBtn.addEventListener('click', closeModal);
+        donateModal.addEventListener('click', (e) => {
+            if (e.target === donateModal) closeModal();
+        });
+
+
+        // ==========================================
+        //         PART 1: 8D AUDIO CONVERTER
+        // ==========================================
+        
+        let audioCtx;
+        let sourceNode;
+        let pannerNode;
+        let gainNode;
+        let analyser;
+        
+        // EQ Nodes
+        let bassFilter, midFilter, trebleFilter;
+
+        let audioBuffer;
+        let isPlaying = false;
+        let startTime = 0;
+        let pauseTime = 0;
+        let rotationAngle = 0;
+        let rotationSpeed = 0.006; 
+        let playbackSpeed = 1.0; 
+        let animationId;
+        let isSeeking = false;
+
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const controls = document.getElementById('controls');
+        const playBtn = document.getElementById('playBtn');
+        const trackTitle = document.getElementById('trackTitle');
+        const timer = document.getElementById('timer');
+        const soundOrb = document.getElementById('soundOrb');
+        const progressBar = document.getElementById('progressBar'); 
+        const pulseWrapper = document.getElementById('pulseWrapper'); 
+        
+        // Inputs
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue'); 
+        const eqBass = document.getElementById('eqBass');
+        const eqMid = document.getElementById('eqMid');
+        const eqTreble = document.getElementById('eqTreble');
+        const tempoSlider = document.getElementById('tempoSlider');
+        const tempoValue = document.getElementById('tempoValue');
+
+        // New Value Displays
+        const bassValue = document.getElementById('bassValue');
+        const midValue = document.getElementById('midValue');
+        const trebleValue = document.getElementById('trebleValue');
+
+        const downloadBtn = document.getElementById('downloadBtn');
+        const renderStatus = document.getElementById('renderStatus');
+        const resetBtn = document.getElementById('resetBtn');
+        const freqCanvas = document.getElementById('freqCanvas');
+        const freqCtx = freqCanvas.getContext('2d');
+
+        // Drag and Drop Logic
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.add('drag-highlight'), false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            uploadArea.addEventListener(eventName, () => uploadArea.classList.remove('drag-highlight'), false);
+        });
+
+        uploadArea.addEventListener('drop', handleDrop, false);
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleFiles(files[0]);
+        }
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', (e) => handleFiles(e.target.files[0]));
+
+        async function handleFiles(file) {
+            if (!file) return;
+
+            trackTitle.innerText = file.name;
+            uploadArea.classList.add('hidden');
+            controls.classList.remove('hidden');
+            controls.classList.add('flex');
+
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            uploadArea.innerHTML = '<p class="animate-pulse text-cyan-400">Loading Waveform...</p>'; 
+            const arrayBuffer = await file.arrayBuffer();
+            audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+            
+            // Set max value for slider
+            progressBar.max = audioBuffer.duration;
+            progressBar.value = 0;
+
+            setupAudioGraph();
+            playAudio();
+            
+            // Reset text
+            setTimeout(() => {
+                 uploadArea.innerHTML = `<input type="file" id="fileInput" accept="audio/*" class="hidden"><div class="flex flex-col items-center gap-6 pointer-events-none transition-transform duration-300 group-hover:scale-105"><div class="w-20 h-20 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/30 shadow-[0_0_30px_rgba(56,189,248,0.15)]"><i data-lucide="music" class="w-10 h-10 text-cyan-400"></i></div><div><h3 class="text-xl font-bold text-white mb-2">Drop Audio Here</h3><p class="text-xs text-cyan-300/50 uppercase tracking-widest">MP3 • WAV • FLAC</p></div></div>`;
+                 lucide.createIcons();
+            }, 1000);
+        }
+        
+        resetBtn.addEventListener('click', () => {
+            if (sourceNode) try { sourceNode.stop(); } catch(e) {}
+            isPlaying = false;
+            cancelAnimationFrame(animationId);
+            pauseTime = 0;
+            startTime = 0;
+            audioBuffer = null;
+            
+            playBtn.innerHTML = '<i data-lucide="play" class="fill-current ml-1 w-6 h-6"></i>';
+            timer.innerText = "00:00";
+            progressBar.value = 0;
+            renderStatus.classList.add('hidden');
+            downloadBtn.disabled = false;
+            
+            controls.classList.add('hidden');
+            controls.classList.remove('flex');
+            uploadArea.classList.remove('hidden');
+            fileInput.value = '';
+            freqCtx.clearRect(0, 0, freqCanvas.width, freqCanvas.height);
+            lucide.createIcons();
+        });
+
+        function setupAudioGraph() {
+            // Create EQ Nodes
+            bassFilter = audioCtx.createBiquadFilter();
+            bassFilter.type = 'lowshelf';
+            bassFilter.frequency.value = 200; // Hz
+            
+            midFilter = audioCtx.createBiquadFilter();
+            midFilter.type = 'peaking';
+            midFilter.frequency.value = 1000;
+            midFilter.Q.value = 1;
+
+            trebleFilter = audioCtx.createBiquadFilter();
+            trebleFilter.type = 'highshelf';
+            trebleFilter.frequency.value = 3000;
+
+            pannerNode = audioCtx.createPanner();
+            pannerNode.panningModel = 'HRTF';
+            pannerNode.distanceModel = 'linear';
+            gainNode = audioCtx.createGain();
+            gainNode.gain.value = 0.9;
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 64; 
+        }
+
+        function createReverb(ctx) {
+            const sampleRate = ctx.sampleRate;
+            const length = sampleRate * 2.0;
+            const impulse = ctx.createBuffer(2, length, sampleRate);
+            const impulseL = impulse.getChannelData(0);
+            const impulseR = impulse.getChannelData(1);
+            for (let i = 0; i < length; i++) {
+                const decay = Math.pow(1 - i / length, 4);
+                impulseL[i] = (Math.random() * 2 - 1) * decay * 0.2; 
+                impulseR[i] = (Math.random() * 2 - 1) * decay * 0.2;
+            }
+            const convolver = ctx.createConvolver();
+            convolver.buffer = impulse;
+            return convolver;
+        }
+
+        function playAudio() {
+            if (!audioBuffer) return;
+            
+            // Ensure context is running (Fix for autoplay policy)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            if (sourceNode) {
+                try { sourceNode.stop(); } catch(e) {}
+            }
+
+            sourceNode = audioCtx.createBufferSource();
+            sourceNode.buffer = audioBuffer;
+            
+            sourceNode.playbackRate.value = playbackSpeed;
+
+            const reverbNode = createReverb(audioCtx);
+            
+            pannerNode.disconnect();
+            
+            // Apply EQ values
+            bassFilter.gain.value = eqBass.value;
+            midFilter.gain.value = eqMid.value;
+            trebleFilter.gain.value = eqTreble.value;
+
+            sourceNode.connect(bassFilter);
+            bassFilter.connect(midFilter);
+            midFilter.connect(trebleFilter);
+            trebleFilter.connect(pannerNode);
+
+            const dryGain = audioCtx.createGain();
+            const wetGain = audioCtx.createGain();
+            dryGain.gain.value = 0.8;
+            wetGain.gain.value = 0.3;
+            
+            pannerNode.connect(dryGain);
+            pannerNode.connect(reverbNode);
+            reverbNode.connect(wetGain);
+            
+            dryGain.connect(analyser);
+            wetGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            sourceNode.start(0, pauseTime);
+            startTime = audioCtx.currentTime; 
+            isPlaying = true;
+            playBtn.innerHTML = '<i data-lucide="pause" class="fill-current w-6 h-6"></i>';
+            lucide.createIcons();
+            
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+            animate8D(); 
+        }
+
+        function pauseAudio() {
+            if (sourceNode) {
+                try { sourceNode.stop(); } catch(e) {}
+            }
+            if (isPlaying) {
+                pauseTime += (audioCtx.currentTime - startTime) * playbackSpeed;
+            }
+            
+            isPlaying = false;
+            playBtn.innerHTML = '<i data-lucide="play" class="fill-current ml-1 w-6 h-6"></i>';
+            lucide.createIcons();
+            cancelAnimationFrame(animationId);
+        }
+
+        playBtn.addEventListener('click', () => { if (isPlaying) pauseAudio(); else playAudio(); });
+        
+        // Seek Bar Logic with isDragging fix
+        progressBar.addEventListener('mousedown', () => isSeeking = true);
+        progressBar.addEventListener('touchstart', () => isSeeking = true);
+        progressBar.addEventListener('mouseup', () => isSeeking = false);
+        progressBar.addEventListener('touchend', () => isSeeking = false);
+
+        progressBar.addEventListener('input', (e) => {
+            const seekTime = parseFloat(e.target.value);
+            
+            // Visual update only
+            const m = Math.floor(seekTime / 60);
+            const s = Math.floor(seekTime % 60);
+            timer.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+        });
+
+        progressBar.addEventListener('change', (e) => {
+            const seekTime = parseFloat(e.target.value);
+            pauseTime = seekTime;
+            
+            if (isPlaying) {
+                playAudio();
+            }
+            isSeeking = false;
+        });
+
+        // Control Listeners
+        speedSlider.addEventListener('input', (e) => { 
+            rotationSpeed = e.target.value * 0.006; 
+            speedValue.innerText = parseFloat(e.target.value).toFixed(1);
+        });
+
+        // Tempo Listener
+        tempoSlider.addEventListener('input', (e) => {
+            const newSpeed = parseFloat(e.target.value);
+            tempoValue.innerText = newSpeed + 'x';
+            
+            if (isPlaying && sourceNode) {
+                const now = audioCtx.currentTime;
+                pauseTime += (now - startTime) * playbackSpeed;
+                startTime = now;
+                try {
+                    sourceNode.playbackRate.cancelScheduledValues(now);
+                    sourceNode.playbackRate.setValueAtTime(newSpeed, now);
+                } catch(e) {
+                    sourceNode.playbackRate.value = newSpeed;
+                }
+            }
+            playbackSpeed = newSpeed;
+        });
+        
+        // Live EQ Updates
+        eqBass.addEventListener('input', (e) => { 
+            if(bassFilter) bassFilter.gain.value = e.target.value; 
+            bassValue.innerText = e.target.value; 
+        });
+        eqMid.addEventListener('input', (e) => { 
+            if(midFilter) midFilter.gain.value = e.target.value; 
+            midValue.innerText = e.target.value; 
+        });
+        eqTreble.addEventListener('input', (e) => { 
+            if(trebleFilter) trebleFilter.gain.value = e.target.value; 
+            trebleValue.innerText = e.target.value; 
+        });
+
+        function animate8D() {
+            if (!isPlaying) return;
+            rotationAngle += rotationSpeed;
+            const radius = 3; 
+            const x = Math.sin(rotationAngle) * radius;
+            const z = Math.cos(rotationAngle) * radius;
+            pannerNode.positionX.value = x;
+            pannerNode.positionZ.value = z;
+            pannerNode.positionY.value = Math.sin(rotationAngle * 2) * 0.5;
+
+            const moveX = x * 13; 
+            const moveY = z * 13; 
+            soundOrb.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+            const scale = 1 + (z / 10);
+            soundOrb.style.transform += ` scale(${scale})`;
+
+            updateVisualizer();
+            updateTimer();
+            animationId = requestAnimationFrame(animate8D);
+        }
+
+        function updateVisualizer() {
+            const bufferLength = analyser.frequencyBinCount;
+            const dataArray = new Uint8Array(bufferLength);
+            analyser.getByteFrequencyData(dataArray);
+            const centerX = freqCanvas.width / 2;
+            const centerY = freqCanvas.height / 2;
+            const radius = Math.min(centerX, centerY) * 0.55; 
+
+            freqCanvas.width = freqCanvas.offsetWidth;
+            freqCanvas.height = freqCanvas.offsetHeight;
+
+            const ctx = freqCtx;
+            ctx.clearRect(0, 0, freqCanvas.width, freqCanvas.height);
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#0ea5e9'; 
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+
+            let bassTotal = 0;
+            for(let i = 0; i < 10; i++) bassTotal += dataArray[i];
+            const bassAvg = bassTotal / 10;
+            const beatScale = 1 + (bassAvg / 255) * 0.3; 
+
+            if(pulseWrapper) {
+                pulseWrapper.style.transform = `scale(${beatScale})`;
+            }
+
+            ctx.beginPath();
+            for(let i = 0; i < bufferLength; i++) {
+                const rads = (Math.PI * 2) / (bufferLength * 0.7); 
+                const barHeight = (dataArray[i] / 255) * 80 * beatScale; 
+                
+                const r = 50 + (dataArray[i]);
+                const g = 250 - (i * 2);
+                const b = 255;
+                ctx.strokeStyle = `rgb(${r},${g},${b})`;
+
+                const angle = i * rads;
+                
+                const x1 = centerX + Math.cos(angle) * radius;
+                const y1 = centerY + Math.sin(angle) * radius;
+                const x2 = centerX + Math.cos(angle) * (radius + barHeight);
+                const y2 = centerY + Math.sin(angle) * (radius + barHeight);
+
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+            ctx.stroke();
+        }
+
+        function updateTimer() {
+            const elapsed = (audioCtx.currentTime - startTime) * playbackSpeed;
+            const current = pauseTime + elapsed;
+            
+            // Only update slider if user is NOT dragging
+            if (!isSeeking) {
+                progressBar.value = current;
+            }
+
+            const m = Math.floor(current / 60);
+            const s = Math.floor(current % 60);
+            timer.innerText = `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+            
+            if(current >= audioBuffer.duration) {
+                pauseAudio();
+                pauseTime = 0; 
+                progressBar.value = 0; 
+                timer.innerText = "00:00"; 
+            }
+        }
+
+        downloadBtn.addEventListener('click', async () => {
+            if (!audioBuffer) return;
+            downloadBtn.disabled = true;
+            renderStatus.classList.remove('hidden');
+            renderStatus.innerText = "> INITIALIZING MP3 ENCODER...";
+
+            const offlineCtx = new OfflineAudioContext(2, audioBuffer.length, audioBuffer.sampleRate);
+            
+            const offSource = offlineCtx.createBufferSource();
+            offSource.buffer = audioBuffer;
+            offSource.playbackRate.value = playbackSpeed;
+            
+            const offBass = offlineCtx.createBiquadFilter(); offBass.type = 'lowshelf'; offBass.frequency.value = 200; offBass.gain.value = eqBass.value;
+            const offMid = offlineCtx.createBiquadFilter(); offMid.type = 'peaking'; offMid.frequency.value = 1000; offMid.gain.value = eqMid.value;
+            const offTreble = offlineCtx.createBiquadFilter(); offTreble.type = 'highshelf'; offTreble.frequency.value = 3000; offTreble.gain.value = eqTreble.value;
+
+            const offPanner = offlineCtx.createPanner();
+            offPanner.panningModel = 'HRTF';
+            offPanner.distanceModel = 'linear';
+            const offReverb = createReverb(offlineCtx);
+            const offDryGain = offlineCtx.createGain();
+            const offWetGain = offlineCtx.createGain();
+            offDryGain.gain.value = 0.8;
+            offWetGain.gain.value = 0.3;
+
+            offSource.connect(offBass);
+            offBass.connect(offMid);
+            offMid.connect(offTreble);
+            offTreble.connect(offPanner);
+            
+            offPanner.connect(offDryGain);
+            offPanner.connect(offReverb);
+            offReverb.connect(offWetGain);
+            offDryGain.connect(offlineCtx.destination);
+            offWetGain.connect(offlineCtx.destination);
+
+            const radsPerSec = rotationSpeed * 60; 
+            const radius = 3;
+            const step = 0.05; 
+            
+            const renderDuration = audioBuffer.duration / playbackSpeed;
+            
+            for (let t = 0; t < renderDuration; t += step) {
+                const angle = t * radsPerSec;
+                const x = Math.sin(angle) * radius;
+                const z = Math.cos(angle) * radius;
+                const y = Math.sin(angle * 2) * 0.5;
+                offPanner.positionX.setValueAtTime(x, t);
+                offPanner.positionZ.setValueAtTime(z, t);
+                offPanner.positionY.setValueAtTime(y, t);
+            }
+
+            offSource.start(0);
+            renderStatus.innerText = "> MIXING AUDIO CHANNELS...";
+            try {
+                const renderedBuffer = await offlineCtx.startRendering();
+                renderStatus.innerText = "> ENCODING MP3 (0%)...";
+                
+                setTimeout(async () => {
+                    const mp3Blob = await convertBufferToMp3Async(renderedBuffer, (progress) => {
+                        renderStatus.innerText = `> ENCODING MP3 (${Math.round(progress * 100)}%)...`;
+                    });
+                    
+                    const url = URL.createObjectURL(mp3Blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `8D_${trackTitle.innerText.split('.')[0]}.mp3`;
+                    link.click();
+                    
+                    renderStatus.innerText = "> DOWNLOAD STARTED";
+                    setTimeout(() => {
+                        renderStatus.classList.add('hidden');
+                        downloadBtn.disabled = false;
+                    }, 3000);
+                }, 100);
+            } catch (e) {
+                console.error(e);
+                renderStatus.innerText = "Error in rendering.";
+                downloadBtn.disabled = false;
+            }
+        });
+
+
+        // ==========================================
+        //       PART 2: VIDEO TO AUDIO CONVERTER
+        // ==========================================
+
+        const videoInput = document.getElementById('videoInput');
+        const videoUploadArea = document.getElementById('videoUploadArea');
+        const videoControls = document.getElementById('videoControls');
+        const videoFileName = document.getElementById('videoFileName');
+        const videoStatus = document.getElementById('videoStatus');
+        const extractBtn = document.getElementById('extractBtn');
+        const resetVideoBtn = document.getElementById('resetVideoBtn');
+        
+        let videoAudioBuffer = null;
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            videoUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+        ['dragenter', 'dragover'].forEach(eventName => {
+            videoUploadArea.addEventListener(eventName, () => videoUploadArea.classList.add('drag-highlight'), false);
+        });
+        ['dragleave', 'drop'].forEach(eventName => {
+            videoUploadArea.addEventListener(eventName, () => videoUploadArea.classList.remove('drag-highlight'), false);
+        });
+        
+        videoUploadArea.addEventListener('drop', (e) => {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+            handleVideoFiles(files[0]);
+        }, false);
+
+        videoUploadArea.addEventListener('click', () => videoInput.click());
+        videoInput.addEventListener('change', (e) => handleVideoFiles(e.target.files[0]));
+
+        async function handleVideoFiles(file) {
+            if (!file) return;
+
+            videoFileName.innerText = file.name;
+            videoUploadArea.classList.add('hidden');
+            videoControls.classList.remove('hidden');
+            videoStatus.innerText = "PROCESSING_VIDEO_STREAM...";
+            
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            try {
+                const arrayBuffer = await file.arrayBuffer();
+                videoAudioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                videoStatus.innerText = "STREAM_READY_FOR_EXTRACTION";
+                videoStatus.classList.replace("text-pink-400", "text-green-400");
+            } catch (err) {
+                console.error(err);
+                videoStatus.innerText = "ERROR_CORRUPTED_FILE";
+                videoStatus.classList.replace("text-pink-400", "text-red-400");
+                extractBtn.disabled = true;
+                extractBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            }
+        }
+
+        extractBtn.addEventListener('click', () => {
+            if(!videoAudioBuffer) return;
+            extractBtn.innerText = "CONVERTING (0%)...";
+            extractBtn.disabled = true;
+            
+            setTimeout(async () => {
+                const mp3Blob = await convertBufferToMp3Async(videoAudioBuffer, (progress) => {
+                    extractBtn.innerText = `CONVERTING (${Math.round(progress * 100)}%)...`;
+                });
+                
+                const url = URL.createObjectURL(mp3Blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Extracted_${videoFileName.innerText.split('.')[0]}.mp3`;
+                link.click();
+                
+                extractBtn.innerText = "DOWNLOAD STARTED";
+                setTimeout(() => {
+                    extractBtn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> Extract MP3';
+                    extractBtn.disabled = false;
+                }, 2000);
+            }, 100);
+        });
+
+        resetVideoBtn.addEventListener('click', () => {
+            videoAudioBuffer = null;
+            videoInput.value = '';
+            videoControls.classList.add('hidden');
+            videoUploadArea.classList.remove('hidden');
+            videoStatus.innerText = "READY_TO_EXTRACT";
+            videoStatus.className = "text-[10px] text-pink-400 font-mono tracking-wider mt-1";
+            extractBtn.disabled = false;
+            extractBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        });
+
+
+        // --- Optimized Async MP3 Encoder (Prevents Lag) ---
+        async function convertBufferToMp3Async(buffer, progressCallback) {
+            const channels = 2; 
+            const sampleRate = buffer.sampleRate;
+            const kbps = 128; 
+            const mp3encoder = new lamejs.Mp3Encoder(channels, sampleRate, kbps);
+            const mp3Data = [];
+
+            const left = buffer.getChannelData(0);
+            const right = buffer.getChannelData(1);
+
+            const sampleBlockSize = 1152; 
+            
+            for (let i = 0; i < left.length; i += sampleBlockSize) {
+                const leftChunk = left.subarray(i, i + sampleBlockSize);
+                const rightChunk = right.subarray(i, i + sampleBlockSize);
+                
+                const leftInt = new Int16Array(leftChunk.length);
+                const rightInt = new Int16Array(rightChunk.length);
+                
+                for (let j = 0; j < leftChunk.length; j++) {
+                    let l = leftChunk[j];
+                    let r = rightChunk[j];
+                    l = l > 1 ? 1 : l < -1 ? -1 : l;
+                    r = r > 1 ? 1 : r < -1 ? -1 : r;
+                    leftInt[j] = l * 32767.5;
+                    rightInt[j] = r * 32767.5;
+                }
+                
+                const mp3buf = mp3encoder.encodeBuffer(leftInt, rightInt);
+                if (mp3buf.length > 0) {
+                    mp3Data.push(mp3buf);
+                }
+                
+                if (i % (sampleBlockSize * 200) === 0) {
+                    if (progressCallback) progressCallback(i / left.length);
+                    await new Promise(r => setTimeout(r, 0));
+                }
+            }
+            
+            const mp3buf = mp3encoder.flush();
+            if (mp3buf.length > 0) {
+                mp3Data.push(mp3buf);
+            }
+            
+            if (progressCallback) progressCallback(1.0);
+            return new Blob(mp3Data, { type: 'audio/mp3' });
+        }
+
+    </script>
+</body>
+</html>
