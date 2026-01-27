@@ -1,36 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Disclaimer - Orbital 8D</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disclaimer - Orbital 8D Audio Suite</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body style="font-family: Arial; padding:40px; line-height:1.7;">
+<body class="bg-slate-900 text-slate-300 min-h-screen flex flex-col">
 
-<h1>Disclaimer</h1>
+    <!-- Header / Nav -->
+    <nav class="w-full bg-slate-950 border-b border-slate-800 py-4">
+        <div class="max-w-4xl mx-auto px-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-record-vinyl text-indigo-500 text-2xl"></i>
+                <span class="text-white font-bold text-lg tracking-wide">Orbital 8D</span>
+            </div>
+            <a href="#" class="text-sm font-medium text-slate-400 hover:text-white transition-colors">
+                <i class="fa-solid fa-arrow-left mr-2"></i>Return to App
+            </a>
+        </div>
+    </nav>
 
-<p>Orbital 8D Audio Suite is a free online tool for audio processing.</p>
+    <!-- Main Content -->
+    <main class="flex-grow py-12 px-4 sm:px-6">
+        <div class="max-w-3xl mx-auto bg-slate-800 rounded-xl shadow-2xl overflow-hidden border border-slate-700">
+            
+            <!-- Title Header -->
+            <div class="bg-gradient-to-r from-indigo-900 to-slate-800 p-8 border-b border-slate-700">
+                <h1 class="text-3xl font-bold text-white mb-2">Legal Disclaimer</h1>
+                <p class="text-indigo-200 text-sm">Please read these terms carefully before using our service.</p>
+            </div>
 
-<h2>Copyright Disclaimer</h2>
-<p>
-All audio/video files uploaded by users remain the property of their respective owners.
-This website does not host or store any copyrighted content.
-</p>
+            <!-- Content Body -->
+            <div class="p-8 space-y-8">
 
-<p>
-Users are fully responsible for the content they upload and convert.
-</p>
+                <!-- General Info -->
+                <section>
+                    <p class="leading-relaxed">
+                        <strong>Orbital 8D Audio Suite</strong> ("the Service") is a free online tool provided for audio processing and 8D conversion purposes. By accessing or using this website, you agree to be bound by this disclaimer.
+                    </p>
+                </section>
 
-<h2>No Guarantees</h2>
-<p>
-We do not guarantee uninterrupted or error-free service.
-</p>
+                <!-- Copyright Section -->
+                <section class="border-l-4 border-indigo-500 pl-4 bg-slate-800/50">
+                    <h2 class="text-xl font-semibold text-white mb-3 flex items-center gap-2">
+                        <i class="fa-solid fa-copyright text-indigo-400 text-sm"></i> Copyright & Content Ownership
+                    </h2>
+                    <p class="mb-4 text-sm leading-relaxed">
+                        Orbital 8D acts solely as a processing utility. We do not claim ownership of any content processed through our tool.
+                    </p>
+                    <ul class="list-disc list-inside space-y-2 text-sm ml-2">
+                        <li><strong>User Responsibility:</strong> All audio and video files uploaded, converted, or processed using this service remain the strict property of their respective copyright holders. Users are solely responsible for ensuring they have the legal right to process any files they upload.</li>
+                        <li><strong>No Hosting:</strong> This website does not host, index, or store copyrighted content on our servers permanently. Files are processed temporarily for the purpose of the user's requested conversion and are not accessible to the public.</li>
+                    </ul>
+                </section>
 
-<h2>Ads and Monetization</h2>
-<p>
-This site may display ads through Google AdSense to support development and hosting costs.
-</p>
+                <!-- Warranties -->
+                <section>
+                    <h2 class="text-xl font-semibold text-white mb-3">Limitation of Liability & No Guarantees</h2>
+                    <p class="text-sm leading-relaxed mb-3">
+                        The Service is provided on an <strong>"AS IS"</strong> and <strong>"AS AVAILABLE"</strong> basis. Orbital 8D expressly disclaims all warranties of any kind, whether express or implied.
+                    </p>
+                    <p class="text-sm leading-relaxed">
+                        We do not guarantee that the service will be uninterrupted, timely, secure, or error-free. We are not liable for any data loss, audio corruption, or damages resulting from the use of this tool.
+                    </p>
+                </section>
 
-<p>Last Updated: January 2026</p>
+                <!-- Monetization -->
+                <section>
+                    <h2 class="text-xl font-semibold text-white mb-3">Advertising & Third Parties</h2>
+                    <p class="text-sm leading-relaxed">
+                        To maintain this tool as a free service, we may display advertisements provided by third-party networks, such as Google AdSense. These third parties may use cookies to serve ads based on your prior visits to this website or other websites. Orbital 8D has no control over the content or accuracy of third-party advertisements.
+                    </p>
+                </section>
+
+                <!-- Divider -->
+                <hr class="border-slate-700 my-6">
+
+                <!-- Last Updated -->
+                <div class="flex items-center justify-between text-xs text-slate-500">
+                    <span><i class="fa-regular fa-clock mr-1"></i> Last Updated: January 2026</span>
+                    <button onclick="window.print()" class="hover:text-indigo-400 transition-colors">
+                        <i class="fa-solid fa-print mr-1"></i> Print Disclaimer
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-950 py-8 text-center border-t border-slate-800 mt-auto">
+        <p class="text-slate-500 text-sm">
+            &copy; 2026 Orbital 8D Audio Suite. All rights reserved.
+        </p>
+    </footer>
 
 </body>
 </html>
